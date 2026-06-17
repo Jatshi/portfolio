@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jianting Shi · 史健廷 — Brain-Computer Interface & Neuro-Inspired Computing</title>
+<meta name="description" content="史健廷 — 北京理工大学博士研究生，研究方向为智能交互与类脑感知、多模态脑机接口、神经启发计算。">
+<style>
+/* ===== CSS Reset & Variables ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0f;
+  --bg2:#111118;
+  --bg3:#16161f;
+  --txt:#e8e8ed;
+  --txt2:#9898a8;
+  --txt3:#686878;
+  --accent:#b44dff;
+  --accent2:#7c3aed;
+  --glow:rgba(180,77,255,0.12);
+  --glow2:rgba(180,77,255,0.35);
+  --glass:rgba(22,22,31,0.55);
+  --glass-border:rgba(255,255,255,0.06);
+  --card:rgba(17,17,24,0.75);
+  --shadow:0 4px 24px rgba(0,0,0,0.4);
+  --radius:16px;
+  --radius-sm:10px;
+  --transition:0.35s cubic-bezier(0.25,0.1,0.25,1);
+  --font-cn:'PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif;
+  --font-en:'SF Pro Display','Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+}
+html{scroll-behavior:smooth;font-size:16px;background:var(--bg);color:var(--txt);overflow-x:hidden}
+body{font-family:var(--font-cn);line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+/* ===== Canvas Background ===== */
+#particles{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+/* ===== Container ===== */
+.container{max-width:1200px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+
+/* ===== Section Base ===== */
+.section{padding:120px 0;position:relative}
+.section-label{display:inline-block;font-family:var(--font-en);font-size:0.7rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;font-weight:600}
+.section-title{font-family:var(--font-en);font-size:clamp(2rem,4vw,3rem);font-weight:700;letter-spacing:-0.02em;margin-bottom:16px;color:var(--txt)}
+.section-subtitle{font-size:1.05rem;color:var(--txt2);max-width:560px;margin-bottom:56px;line-height:1.8}
+
+/* ===== Glass Card ===== */
+.glass{background:var(--glass);backdrop-filter:blur(24px) saturate(120%);-webkit-backdrop-filter:blur(24px) saturate(120%);border:1px solid var(--glass-border);border-radius:var(--radius);transition:var(--transition)}
+.glass:hover{border-color:rgba(180,77,255,0.18);box-shadow:0 0 40px var(--glow)}
+
+/* ===== Breathe Glow Keyframes ===== */
+@keyframes breathe{0%,100%{box-shadow:0 0 15px var(--glow),0 0 30px rgba(180,77,255,0.03)}50%{box-shadow:0 0 25px var(--glow2),0 0 50px rgba(180,77,255,0.08)}}
+@keyframes breathe-border{0%,100%{border-color:rgba(255,255,255,0.06)}50%{border-color:rgba(180,77,255,0.25)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+/* ===== Scroll Reveal ===== */
+.reveal{opacity:0;transform:translateY(40px);transition:opacity 0.8s ease,transform 0.8s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* ===== Navigation ===== */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 0;transition:var(--transition)}
+.nav.scrolled{background:rgba(10,10,15,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.05)}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;justify-content:space-between;align-items:center}
+.nav-logo{font-family:var(--font-en);font-size:1.1rem;font-weight:700;letter-spacing:-0.01em;color:var(--txt);text-decoration:none}
+.nav-logo span{color:var(--accent)}
+.nav-links{display:flex;gap:32px;list-style:none}
+.nav-links a{color:var(--txt2);text-decoration:none;font-size:0.85rem;transition:color 0.25s;font-family:var(--font-en);letter-spacing:0.02em}
+.nav-links a:hover{color:var(--accent)}
+
+/* ===== Hero ===== */
+.hero{min-height:100vh;display:flex;align-items:center;position:relative;padding-top:80px}
+.hero-bg{position:absolute;inset:0;z-index:0;overflow:hidden}
+.hero-gradient{position:absolute;width:600px;height:600px;border-radius:50%;filter:blur(120px);opacity:0.15}
+.hero-gradient.g1{background:var(--accent);top:-200px;right:-100px;animation:float 8s ease-in-out infinite}
+.hero-gradient.g2{background:var(--accent2);bottom:-200px;left:-100px;animation:float 6s ease-in-out infinite reverse}
+.hero-content{position:relative;z-index:1}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:100px;background:rgba(180,77,255,0.1);border:1px solid rgba(180,77,255,0.2);font-size:0.8rem;color:var(--accent);margin-bottom:32px;font-family:var(--font-en);letter-spacing:0.04em}
+.hero-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:breathe 2s ease-in-out infinite}
+.hero h1{font-family:var(--font-en);font-size:clamp(2.8rem,6vw,4.8rem);font-weight:700;letter-spacing:-0.03em;line-height:1.1;margin-bottom:8px}
+.hero h1 .cn{font-family:var(--font-cn);display:block;font-size:clamp(1.6rem,3.5vw,2.4rem);font-weight:500;letter-spacing:0.04em;margin-bottom:4px;color:var(--txt2)}
+.hero-subtitle{font-size:clamp(1rem,2vw,1.25rem);color:var(--txt2);max-width:600px;margin-bottom:40px;line-height:1.8}
+.hero-cta{display:flex;gap:16px;flex-wrap:wrap}
+.btn{padding:12px 28px;border-radius:100px;font-size:0.9rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:var(--transition);border:none;font-family:var(--font-en);letter-spacing:0.02em}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 4px 20px rgba(180,77,255,0.3)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(180,77,255,0.4)}
+.btn-glass{background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);color:var(--txt);border:1px solid var(--glass-border)}
+.btn-glass:hover{background:rgba(180,77,255,0.08);border-color:rgba(180,77,255,0.25);transform:translateY(-2px)}
+.hero-scroll{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--txt3);font-size:0.7rem;font-family:var(--font-en);letter-spacing:0.1em;animation:float 3s ease-in-out infinite}
+.hero-scroll::after{content:'';width:1px;height:40px;background:linear-gradient(to bottom,var(--txt3),transparent)}
+
+/* ===== Intro / About ===== */
+.intro-card{padding:48px;max-width:900px}
+.intro-card p{font-size:1.05rem;color:var(--txt2);line-height:2}
+
+/* ===== Education Timeline ===== */
+.timeline{position:relative;padding-left:32px}
+.timeline::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:1px;background:linear-gradient(to bottom,var(--accent),rgba(180,77,255,0.1))}
+.timeline-item{position:relative;margin-bottom:40px;padding-left:28px}
+.timeline-item::before{content:'';position:absolute;left:-35px;top:8px;width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--glow2);animation:breathe 3s ease-in-out infinite}
+.timeline-year{font-family:var(--font-en);font-size:0.8rem;color:var(--accent);letter-spacing:0.08em;margin-bottom:4px}
+.timeline h3{font-size:1.2rem;font-weight:600;margin-bottom:4px}
+.timeline p{color:var(--txt2);font-size:0.95rem}
+
+/* ===== Bento Grid ===== */
+.bento{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:minmax(180px,auto);gap:20px}
+.bento-card{background:var(--card);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--glass-border);border-radius:var(--radius);padding:28px;transition:var(--transition);position:relative;overflow:hidden;cursor:default}
+.bento-card::after{content:'';position:absolute;inset:0;border-radius:var(--radius);background:radial-gradient(600px circle at var(--mouse-x,50%) var(--mouse-y,50%),rgba(180,77,255,0.06),transparent 40%);opacity:0;transition:opacity 0.3s}
+.bento-card:hover::after{opacity:1}
+.bento-card:hover{transform:translateY(-4px);border-color:rgba(180,77,255,0.2);box-shadow:0 0 30px var(--glow),0 8px 32px rgba(0,0,0,0.5)}
+.bento-card.breathe{animation:breathe 4s ease-in-out infinite,breathe-border 4s ease-in-out infinite}
+.bento-card.wide{grid-column:span 2}
+.bento-card.tall{grid-row:span 2}
+.bento-card.xwide{grid-column:span 4}
+.bento-tag{display:inline-block;font-family:var(--font-en);font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;padding:3px 10px;border-radius:100px;background:rgba(180,77,255,0.1);color:var(--accent);margin-bottom:14px}
+.bento-title{font-family:var(--font-en);font-size:1.15rem;font-weight:600;margin-bottom:8px;color:var(--txt)}
+.bento-desc{font-size:0.88rem;color:var(--txt2);line-height:1.7}
+.bento-tech{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.bento-tech span{font-size:0.7rem;padding:3px 10px;border-radius:100px;background:rgba(255,255,255,0.04);color:var(--txt2);font-family:var(--font-en)}
+.bento-contribution{margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.04);font-size:0.8rem;color:var(--txt3);line-height:1.6}
+
+/* ===== Skills ===== */
+.skills-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.skill-cat{padding:32px}
+.skill-cat h3{font-family:var(--font-en);font-size:0.75rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:20px}
+.skill-tags{display:flex;flex-wrap:wrap;gap:8px}
+.skill-tag{padding:6px 14px;border-radius:100px;font-size:0.82rem;background:rgba(255,255,255,0.03);color:var(--txt2);border:1px solid rgba(255,255,255,0.05);transition:var(--transition)}
+.skill-tag:hover{background:rgba(180,77,255,0.08);border-color:rgba(180,77,255,0.3);color:var(--txt);transform:translateY(-1px)}
+
+/* ===== Publications ===== */
+.pub-list{display:flex;flex-direction:column;gap:12px}
+.pub-item{padding:20px 28px;display:flex;gap:20px;align-items:flex-start}
+.pub-index{font-family:var(--font-en);font-size:0.8rem;color:var(--accent);min-width:24px;padding-top:2px}
+.pub-content{flex:1}
+.pub-title{font-size:0.95rem;font-weight:600;margin-bottom:4px;line-height:1.5}
+.pub-meta{font-size:0.8rem;color:var(--txt3)}
+.pub-badge{display:inline-block;font-size:0.65rem;padding:2px 8px;border-radius:100px;margin-left:8px;font-family:var(--font-en);background:rgba(180,77,255,0.1);color:var(--accent)}
+
+/* ===== Awards ===== */
+.awards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.award-item{padding:20px;font-size:0.9rem;display:flex;align-items:center;gap:14px}
+.award-icon{font-size:1.2rem;flex-shrink:0}
+.award-text{color:var(--txt2);line-height:1.5}
+
+/* ===== Summary ===== */
+.summary-card{padding:48px;text-align:center;max-width:800px;margin:0 auto}
+.summary-card p{font-size:1.1rem;color:var(--txt2);line-height:2.2;font-style:italic}
+
+/* ===== Footer ===== */
+.footer{padding:60px 0;text-align:center;border-top:1px solid rgba(255,255,255,0.04)}
+.footer p{color:var(--txt3);font-size:0.8rem;font-family:var(--font-en);letter-spacing:0.04em}
+
+/* ===== Responsive ===== */
+@media(max-width:1024px){
+  .bento{grid-template-columns:repeat(2,1fr)}
+  .bento-card.wide,.bento-card.xwide{grid-column:span 2}
+  .nav-links{display:none}
+}
+@media(max-width:640px){
+  .section{padding:80px 0}
+  .container{padding:0 16px}
+  .bento{grid-template-columns:1fr}
+  .bento-card.wide,.bento-card.xwide{grid-column:span 1}
+  .hero h1{font-size:2.2rem}
+  .intro-card,.summary-card{padding:28px}
+  .skills-grid{grid-template-columns:1fr}
+  .pub-item{flex-direction:column;gap:6px}
+}
+</style>
+</head>
+<body>
+
+<!-- Canvas Particles -->
+<canvas id="particles"></canvas>
+
+<!-- Navigation -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">JS<span>.</span></a>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#education">Education</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#publications">Papers</a></li>
+      <li><a href="#awards">Awards</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-bg">
+    <div class="hero-gradient g1"></div>
+    <div class="hero-gradient g2"></div>
+  </div>
+  <div class="hero-content container">
+    <div class="hero-badge"><span class="dot"></span> PhD Candidate · BIT</div>
+    <h1><span class="cn">史健廷</span>Jianting Shi</h1>
+    <p class="hero-subtitle">智能交互与类脑感知 · 多模态脑机接口 · 神经启发计算<br>以神经科学启发下一代人工智能 | Neuro-Inspired AI Researcher</p>
+    <div class="hero-cta">
+      <a href="#projects" class="btn btn-primary">探索项目</a>
+      <a href="mailto:jat_shi@bit.edu.cn" class="btn btn-glass">联系我</a>
+    </div>
+  </div>
+  <div class="hero-scroll">SCROLL</div>
+</section>
+
+<!-- About -->
+<section class="section" id="about">
+  <div class="container">
+    <div class="reveal">
+      <span class="section-label">About</span>
+      <h2 class="section-title">关于我</h2>
+      <div class="intro-card glass">
+        <p>北京理工大学机械工程专业博士研究生（硕博连读），师从毕路拯教授。研究方向涵盖<strong style="color:var(--txt)">智能交互与类脑感知、多模态脑机接口、神经启发计算</strong>。以第一作者在 Cyborg and Bionic Systems（Science 旗下期刊，IF=18.2）、IEEE TNSRE 等顶级期刊发表多篇论文，拥有多项国家发明专利。作为项目负责人率队夺得中国国际"互联网+"大学生创新创业大赛<strong style="color:var(--accent)">全国金奖</strong>，入选<strong style="color:var(--accent)">中国科协青年科技人才培育工程</strong>。致力于将神经科学的前沿发现转化为鲁棒、高效的智能计算系统。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Education -->
+<section class="section" id="education">
+  <div class="container">
+    <div class="reveal">
+      <span class="section-label">Education</span>
+      <h2 class="section-title">教育背景</h2>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-year">2021.09 — Present</div>
+          <h3>北京理工大学 · 机械工程 博士研究生（硕博连读）</h3>
+          <p>研究方向：智能交互与类脑感知、多模态脑机接口、神经启发计算</p>
+          <p style="margin-top:6px;font-size:0.85rem;color:var(--txt3)">主修课程：高级人工智能、高级机器学习、先进控制工程、数字图像处理与模式识别、矩阵分析、科学与工程计算、复变函数与积分变换</p>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">2017.09 — 2021.06</div>
+          <h3>北京理工大学 · 机械工程 工学学士</h3>
+          <p>保研（综合排名 3/101）</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Experience -->
+<section class="section" id="experience" style="padding-top:40px">
+  <div class="container">
+    <div class="reveal">
+      <span class="section-label">Experience</span>
+      <h2 class="section-title">工作经验</h2>
+      <div class="glass" style="padding:36px;max-width:900px">
+        <div style="font-family:var(--font-en);font-size:0.8rem;color:var(--accent);letter-spacing:0.08em;margin-bottom:8px">2022.09 — 2024.08</div>
+        <h3 style="font-size:1.25rem;font-weight:600;margin-bottom:4px">北京脑创未来科技有限公司</h3>
+        <p style="color:var(--txt2);margin-bottom:14px">创始人（法人）</p>
+        <p style="color:var(--txt2);line-height:1.9">作为在校生主导创立公司，将实验室前沿研究成果（脑控外骨骼机器人）进行产品化探索与商业验证。全面负责项目的整体规划、团队构建、技术研发与外部资源对接，成功将学术概念转化为具备完整展示能力的创新项目。作为项目总负责人与路演主讲人，带领团队获得第九届中国国际"互联网+"大学生创新创业大赛<strong style="color:var(--accent)">全国金奖</strong>。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Projects - Bento Grid -->
+<section class="section" id="projects">
+  <div class="container">
+    <div class="reveal">
+      <span class="section-label">Projects</span>
+      <h2 class="section-title">项目经历</h2>
+      <p class="section-subtitle">从神经科学到工程落地的全栈研究实践</p>
+    </div>
+    <div class="bento">
+      <!-- 华为合作 - wide -->
+      <div class="bento-card wide breathe reveal" style="--delay:0.1s">
+        <div class="bento-tag">华为技术合作</div>
+        <div class="bento-title">脑机融合智能控制技术</div>
+        <div class="bento-desc">与华为合作探索脑机接口在下一代智能终端控制场景中的应用，实现用户通过脑电信号对机械臂进行连续自然控制。</div>
+        <div class="bento-tech">
+          <span>运动意图解码</span><span>低延迟管线</span><span>模型轻量化</span><span>嵌入式部署</span><span>毫秒级推理</span>
+        </div>
+        <div class="bento-contribution">核心算法研发与工程化落地。主导轻量化意图解码模型设计，在嵌入式平台实现毫秒级实时解码。</div>
+      </div>
+
+      <!-- 北京市自然基金 - wide -->
+      <div class="bento-card wide breathe reveal" style="--delay:0.15s">
+        <div class="bento-tag">北京市自然基金</div>
+        <div class="bento-title">低信噪比声目标脑机融合检测</div>
+        <div class="bento-desc">引入EEG解码作为认知注意额外信源，构建不依赖声学信号质量的新型鲁棒检测范式。—10dB信噪比下召回率 85.6%，误报率仅 1.2%。</div>
+        <div class="bento-tech">
+          <span>Tri-SDANet</span><span>时空注意力</span><span>置信度优化</span><span>流式处理</span><span>SOTA 87.5%</span>
+        </div>
+        <div class="bento-contribution">算法负责人。独立提出Tri-SDANet模型，解码准确率达87.5%（SOTA）。第一作者发表于顶级SCI期刊。</div>
+      </div>
+
+      <!-- MARX - xwide -->
+      <div class="bento-card xwide breathe reveal" style="--delay:0.2s;background:linear-gradient(135deg,rgba(17,17,24,0.9),rgba(30,20,50,0.85))">
+        <div class="bento-tag">互联网+ 全国金奖</div>
+        <div class="bento-title" style="font-size:1.3rem">MARX：脑控双上肢机器人外骨骼</div>
+        <div class="bento-desc" style="max-width:700px">首创面向肢体老化老人及运动障碍患者的脑控双上肢康复外骨骼，集成无线脑电采集与穿戴式外骨骼硬件。首次实现脑电对左右双臂同步控制，率先将神经控制与机器人自主控制结合实现脑机协同智能规划。获华为等企业合作认可。</div>
+        <div class="bento-tech">
+          <span>脑电同步控制</span><span>脑机协同规划</span><span>无线采集</span><span>穿戴式硬件</span><span>产品化验证</span>
+        </div>
+        <div class="bento-contribution">项目绝对负责人。全面领导技术研发、产品定义、团队组建与商业拓展全流程。带领跨学科团队荣获全国金奖。</div>
+      </div>
+
+      <!-- 国家自然基金 - 声目标 -->
+      <div class="bento-card wide breathe reveal" style="--delay:0.25s">
+        <div class="bento-tag">国家自然科学基金面上项目</div>
+        <div class="bento-title">全自主声目标检测的神经编解码理论</div>
+        <div class="bento-desc">首创"听觉脑电编解码驱动"自主感知新范式，通过解析听觉神经表征机理构建Brain-inspired计算模型。</div>
+        <div class="bento-tech">
+          <span>Transformer</span><span>Flow Matching</span><span>神经编解码</span><span>双流耦合</span><span>类脑鲁棒</span>
+        </div>
+        <div class="bento-contribution">核心骨干。主导神经启发编解码模型（Transformer + 流匹配）探索与实现，完成Acoustic-to-EEG Encoder初步验证。</div>
+      </div>
+
+      <!-- 国家自然基金 - 上肢 -->
+      <div class="bento-card wide reveal" style="--delay:0.3s">
+        <div class="bento-tag">国家自然科学基金面上项目</div>
+        <div class="bento-title">多任务下脑电上肢运动意图解析与人机协同</div>
+        <div class="bento-desc">研究多任务下从脑电高精度解码连续上肢运动意图，实现自然流畅的人机协同控制。</div>
+        <div class="bento-tech">
+          <span>运动皮层解码</span><span>轨迹预测</span><span>自适应控制</span><span>深度学习</span>
+        </div>
+        <div class="bento-contribution">负责深度学习意图解码算法开发，解码准确率提升15%。</div>
+      </div>
+
+      <!-- 国防 -->
+      <div class="bento-card reveal" style="--delay:0.35s">
+        <div class="bento-tag">国防科工局基础科研</div>
+        <div class="bento-title">脑机融合技术</div>
+        <div class="bento-desc">国防基础科研项目，核心算法研发。</div>
+        <div class="bento-contribution">核心算法研究人员，负责关键算法设计、仿真验证与性能优化。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Skills -->
+<section class="section" id="skills">
+  <div class="container">
+    <div class="reveal">
+      <span class="section-label">Skills</span>
+      <h2 class="section-title">技术能力</h2>
+    </div>
+    <div class="skills-grid">
+      <div class="skill-cat glass reveal" style="--delay:0.1s">
+        <h3>编程语言</h3>
+        <div class="skill-tags">
+          <span class="skill-tag">Python（精通）</span>
+          <span class="skill-tag">C++（掌握）</span>
+          <span class="skill-tag">Java（熟悉）</span>
+        </div>
+      </div>
+      <div class="skill-cat glass reveal" style="--delay:0.15s">
+        <h3>AI/ML 框架</h3>
+        <div class="skill-tags">
+          <span class="skill-tag">PyTorch</span>
+          <span class="skill-tag">Scikit-learn</span>
+          <span class="skill-tag">Pandas</span>
+          <span class="skill-tag">NumPy</span>
+          <span class="skill-tag">Matplotlib</span>
+          <span class="skill-tag">Seaborn</span>
+        </div>
+      </div>
+      <div class="skill-cat glass reveal" style="--delay:0.2s">
+        <h3>深度学习技术</h3>
+        <div class="skill-tags">
+          <span class="skill-tag">CNN / RNN</span>
+          <span class="skill-tag">Transformer</span>
+          <span class="skill-tag">SNN</span>
+          <span class="skill-tag">注意力机制</span>
+          <span class="skill-tag">多模态融合</span>
+          <span class="skill-tag">RAG</span>
+          <span class="skill-tag">Agent</span>
+          <span class="skill-tag">SFT / RLHF</span>
+        </div>
+      </div>
+      <div class="skill-cat glass reveal" style="--delay:0.25s">
+        <h3>开发工具</h3>
+        <div class="skill-tags">
+          <span class="skill-tag">Git</span>
+          <span class="skill-tag">Docker</span>
+          <span class="skill-tag">PyCharm</span>
+          <span class="skill-tag">VS Code</span>
+          <span class="skill-tag">Jupyter</span>
+        </div>
+      </div>
+      <div class="skill-cat glass reveal" style="--delay:0.3s">
+        <h3>专业领域</h3>
+        <div class="skill-tags">
+          <span class="skill-tag">脑机接口（BCI）</span>
+          <span class="skill-tag">神经启发计算</span>
+          <span class="skill-tag">多模态感知</span>
+          <span class="skill-tag">脑电解码</span>
+          <span class="skill-tag">实验设计</span>
+          <span class="skill-tag">数据集构建</span>
+        </div>
+      </div>
+      <div class="skill-cat glass reveal" style="--delay:0.35s">
+        <h3>研究全流程</h3>
+        <div class="skill-tags">
+          <span class="skill-tag">实验设计</span>
+          <span class="skill-tag">算法创新</span>
+          <span class="skill-tag">论文撰写</span>
+          <span class="skill-tag">顶级投稿</span>
+          <span class="skill-tag">项目管理</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Publications -->
+<section class="section" id="publications">
+  <div class="container">
+    <div class="reveal">
+      <span class="section-label">Publications</span>
+      <h2 class="section-title">代表性论文</h2>
+    </div>
+    <div class="pub-list">
+      <div class="pub-item glass reveal" style="--delay:0.1s">
+        <div class="pub-index">01</div>
+        <div class="pub-content">
+          <div class="pub-title">Low-Quality Video Target Detection Based on EEG Signal Using Eye Movement Alignment <span class="pub-badge">一区Top · IF 18.2</span></div>
+          <div class="pub-meta">Cyborg and Bionic Systems (Science Partner Journal), 2024 | <a href="https://doi.org/10.34133/cbsystems.0121" target="_blank" style="color:var(--accent);text-decoration:none">DOI: 10.34133/cbsystems.0121</a></div>
+        </div>
+      </div>
+      <div class="pub-item glass reveal" style="--delay:0.15s">
+        <div class="pub-index">02</div>
+        <div class="pub-content">
+          <div class="pub-title">Neuroanatomy-Informed Brain–Machine Hybrid Intelligence for Robust Acoustic Target Detection <span class="pub-badge">一区Top · IF 18.2</span></div>
+          <div class="pub-meta">Cyborg and Bionic Systems (Science Partner Journal), 2025 | <a href="https://doi.org/10.34133/cbsystems.0438" target="_blank" style="color:var(--accent);text-decoration:none">DOI: 10.34133/cbsystems.0438</a></div>
+        </div>
+      </div>
+      <div class="pub-item glass reveal" style="--delay:0.2s">
+        <div class="pub-index">03</div>
+        <div class="pub-content">
+          <div class="pub-title">From Neural Representations to Brain-Inspired Architecture: Decoding Auditory Target Perception in Complex Scenes <span class="pub-badge">一区Top · IF 6.8 · 二审</span></div>
+          <div class="pub-meta">IEEE Journal of Biomedical and Health Informatics, 2025</div>
+        </div>
+      </div>
+      <div class="pub-item glass reveal" style="--delay:0.25s">
+        <div class="pub-index">04</div>
+        <div class="pub-content">
+          <div class="pub-title">Brain-Inspired Robust Sound Target Detection via Neuro-Cognitive Representation Learning <span class="pub-badge">一区Top · IF 8.9 · UR</span></div>
+          <div class="pub-meta">IEEE Transactions on Neural Networks and Learning Systems (Under Review)</div>
+        </div>
+      </div>
+      <div class="pub-item glass reveal" style="--delay:0.3s">
+        <div class="pub-index">05</div>
+        <div class="pub-content">
+          <div class="pub-title">CAS-EEG: A multi-subject dataset of synchronized neural and acoustic events for complex auditory scene analysis <span class="pub-badge">二区 · IF 6.9 · UR</span></div>
+          <div class="pub-meta">Scientific Data (Under Review)</div>
+        </div>
+      </div>
+      <div class="pub-item glass reveal" style="--delay:0.35s">
+        <div class="pub-index">06</div>
+        <div class="pub-content">
+          <div class="pub-title">Sound Target Detection Under Noisy Environment Using Brain-Computer Interface <span class="pub-badge">一区 · IF 5.2</span></div>
+          <div class="pub-meta">IEEE Transactions on Neural Systems and Rehabilitation Engineering, 2023 | <a href="https://doi.org/10.1109/TNSRE.2022.3219595" target="_blank" style="color:var(--accent);text-decoration:none">DOI: 10.1109/TNSRE.2022.3219595</a></div>
+        </div>
+      </div>
+      <div class="pub-item glass reveal" style="--delay:0.4s">
+        <div class="pub-index">07</div>
+        <div class="pub-content">
+          <div class="pub-title">Brain-inspired deep learning model for EEG-based low-quality video target detection with phased encoding and aligned fusion <span class="pub-badge">一区Top · IF 7.5</span></div>
+          <div class="pub-meta">Expert Systems With Applications, 2025</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Awards -->
+<section class="section" id="awards">
+  <div class="container">
+    <div class="reveal">
+      <span class="section-label">Awards</span>
+      <h2 class="section-title">荣誉与奖项</h2>
+    </div>
+    <div class="awards-grid">
+      <div class="award-item glass reveal" style="--delay:0.05s"><span class="award-icon">🏆</span><span class="award-text">中国科协青年科技人才培育工程（博士青托）</span></div>
+      <div class="award-item glass reveal" style="--delay:0.08s"><span class="award-icon">🎖️</span><span class="award-text">博士生国家奖学金</span></div>
+      <div class="award-item glass reveal" style="--delay:0.11s"><span class="award-icon">🥇</span><span class="award-text">第九届"互联网+"创新创业大赛 <strong style="color:var(--accent)">全国金奖</strong>（项目负责人）</span></div>
+      <div class="award-item glass reveal" style="--delay:0.14s"><span class="award-icon">🏅</span><span class="award-text">世界机器人大赛 — 优秀青年论文<strong style="color:var(--accent)">特等奖（冠军）</strong></span></div>
+      <div class="award-item glass reveal" style="--delay:0.17s"><span class="award-icon">🥈</span><span class="award-text">中国仿真学会自然科学奖 二等奖</span></div>
+      <div class="award-item glass reveal" style="--delay:0.2s"><span class="award-icon">🥉</span><span class="award-text">第八届"互联网+"创新创业大赛 全国铜奖（项目负责人）</span></div>
+      <div class="award-item glass reveal" style="--delay:0.23s"><span class="award-icon">🌟</span><span class="award-text">首届"京彩大创"北京市创新创业大赛 <strong style="color:var(--accent)">一等奖（赛道冠军）</strong></span></div>
+      <div class="award-item glass reveal" style="--delay:0.26s"><span class="award-icon">⭐</span><span class="award-text">第十三届"挑战杯"北京理工大学金奖（项目负责人）</span></div>
+      <div class="award-item glass reveal" style="--delay:0.29s"><span class="award-icon">🎓</span><span class="award-text">北京市优秀毕业生</span></div>
+      <div class="award-item glass reveal" style="--delay:0.32s"><span class="award-icon">💫</span><span class="award-text">北京市"京彩之星"荣誉称号</span></div>
+      <div class="award-item glass reveal" style="--delay:0.35s"><span class="award-icon">📚</span><span class="award-text">北京理工大学特等学业奖学金</span></div>
+      <div class="award-item glass reveal" style="--delay:0.38s"><span class="award-icon">✨</span><span class="award-text">华瑞世纪奖学金 · SMC奖学金 · 法士特一等奖学金</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- Summary -->
+<section class="section" id="summary">
+  <div class="container">
+    <div class="reveal">
+      <div class="summary-card glass">
+        <p>"具备强烈的自驱力与持续的技术热情，热衷于探索前沿技术并快速学习应用。擅长拆解复杂问题并设计有效解决方案，拥有良好的组织协调与跨领域协作能力。以积极开放的心态面对挑战，期待在 AI 与脑科学的交汇处创造突破性价值。"</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <p>Jianting Shi © 2026 &nbsp;·&nbsp; 北京理工大学 &nbsp;·&nbsp; jat_shi@bit.edu.cn</p>
+</footer>
+
+<script>
+/* ===== Particle Background ===== */
+(()=>{
+  const canvas=document.getElementById('particles');
+  const ctx=canvas.getContext('2d');
+  let particles=[],w,h;
+
+  function resize(){
+    w=canvas.width=window.innerWidth;
+    h=canvas.height=window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize',resize);
+
+  for(let i=0;i<60;i++){
+    particles.push({
+      x:Math.random()*w,y:Math.random()*h,
+      vx:(Math.random()-0.5)*0.3,vy:(Math.random()-0.5)*0.3,
+      r:Math.random()*1.5+0.5,
+      a:Math.random()*0.4+0.1
+    });
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,w,h);
+    particles.forEach((p,i)=>{
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0)p.x=w;if(p.x>w)p.x=0;
+      if(p.y<0)p.y=h;if(p.y>h)p.y=0;
+
+      // Connect nearby particles
+      for(let j=i+1;j<particles.length;j++){
+        const q=particles[j];
+        const dx=p.x-q.x,dy=p.y-q.y,dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<120){
+          ctx.beginPath();
+          ctx.strokeStyle=`rgba(180,77,255,${0.06*(1-dist/120)})`;
+          ctx.lineWidth=0.5;
+          ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);
+          ctx.stroke();
+        }
+      }
+
+      ctx.beginPath();
+      ctx.fillStyle=`rgba(180,77,255,${p.a})`;
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ===== Parallax Scroll ===== */
+(()=>{
+  const gradients=document.querySelectorAll('.hero-gradient');
+  window.addEventListener('scroll',()=>{
+    const scroll=window.pageYOffset;
+    gradients.forEach((g,i)=>{
+      const speed=0.3+i*0.15;
+      g.style.transform=`translateY(${scroll*speed}px)`;
+    });
+  });
+})();
+
+/* ===== Nav Scroll Effect ===== */
+(()=>{
+  const nav=document.getElementById('nav');
+  window.addEventListener('scroll',()=>{
+    nav.classList.toggle('scrolled',window.pageYOffset>60);
+  });
+})();
+
+/* ===== Scroll Reveal ===== */
+(()=>{
+  const observer=new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  },{threshold:0.15,rootMargin:'0px 0px -50px 0px'});
+
+  document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+})();
+
+/* ===== Bento Mouse Glow ===== */
+(()=>{
+  document.querySelectorAll('.bento-card').forEach(card=>{
+    card.addEventListener('mousemove',e=>{
+      const rect=card.getBoundingClientRect();
+      const x=((e.clientX-rect.left)/rect.width)*100;
+      const y=((e.clientY-rect.top)/rect.height)*100;
+      card.style.setProperty('--mouse-x',`${x}%`);
+      card.style.setProperty('--mouse-y',`${y}%`);
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
